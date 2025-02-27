@@ -1,13 +1,17 @@
 #include <ncurses.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <time.h>
 
 // POSIX library que nos permite abrir, ler e fechar diretorios
 #include <dirent.h>
 #include <string.h>
 
+// variaveis globais
 FILE *file;
 DIR *directory; 
+int dia, mes, ano;
+
 
 bool verificaSeExiste() {
     struct dirent *entry;
@@ -21,6 +25,7 @@ bool verificaSeExiste() {
     }
 
     while ((entry = readdir(directory)) != NULL) {
+        // strcmp para comparar 
         if (strcmp(entry->d_name, "logs.txt") == 0) {
             foundLogs = true;
             break;
@@ -52,46 +57,60 @@ void criaLogSeNaoExiste() {
     }
 }
 
-int main(void) {
+void verificaSeJaFoiRegistrado() {
+    // percorre todo o arquivo Logs
+    // não pode ser char
+    char linha[256];
+    bool encontrado = false;
+
+    file = fopen("logs.txt", "r");
     
+    // le linha por linha
+    while (fgets(linha, sizeof(linha), file) != NULL) {
+        if (strstr(linha, "Logs:") != NULL) {
+            encontrado = true;
+            break;
+        }
+    }
+
+    fclose(file);
+
+    if (encontrado) {
+        printf("Registrado!\n");
+    }
+    else {
+        printf("Não registrado, escrevendo...\n");
+    }
+}
+
+void getTempo() {
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+
+    int horasDeConcentracao;
+    dia = tm.tm_mday;
+    mes = tm.tm_mon + 1;
+    ano = tm.tm_year + 1900;
+}
+
+void escreveLogs() {
+    getTempo();
+    file = fopen("logs.txt", "w");
+    
+    // fprintf(fp, "%s\n")
+
+    const char *text = "Logs:\n";
+    fprintf(file, "%s Dia: %d\n Mês: %d\n Ano: %d\n", text, dia, mes, ano);
+
+    fclose(file);
+}
+
+int main(void) {
+
     // "a" -> append. 
     // "w" -> write
     
     criaLogSeNaoExiste();
-    
-    // abre o logs.txt
-    //fp = fopen("logs.txt", "a");
-    
-    // se não existe, cria
-    // if (fp == NULL) {
-    //      fp = fopen("logs.txt", "w");
-    // }
-
-    char choice;
-    int horasDeConcentracao;
-    int dia = 20;
-    int mes = 02;
-    int ano = 2025;
-
-    // initscr();
-    // 
-    // refresh();
-    // clear();
-
-
-    // fprintf(fp, "%s\n")
-    
-    // const char *text = "Logs:\n";
-    // fprintf(file, "%s Dia: %d\n Mês: %d\n Ano: %d\n", text, dia, mes, ano);
-    // 
-    // char ch;
-    // file = fopen("logs.txt", "r");
-    // 
-    // while((ch = fgetc(file)) != EOF) {
-    //     printw("%c", ch);
-    // }
-
-    // // getch();
-    // // endwin();
-    // fclose(file);
+    verificaSeJaFoiRegistrado();
+    escreveLogs();
 }
