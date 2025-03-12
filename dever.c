@@ -1,16 +1,47 @@
 #include <ncurses.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <threads.h>
 #include <time.h>
 
-// POSIX library que nos permite abrir, ler e fechar diretorios
+// POSIX Library que permite abrir, ler e fechar diretorios
 #include <dirent.h>
 #include <string.h>
+
+// para o sleep
+#include <unistd.h>
 
 // variaveis globais
 FILE *file;
 DIR *directory; 
 int dia, mes, ano;
+int horas, minutos, segundos = 0;
+
+int cronometro() {
+    printf("iniciando o cronometro...");
+    printf("pressione qualquer tecla para iniciar");
+    
+    int caractere; 
+    getchar(); // aguarda o usuário pressionar algo
+
+    // permite a contagem infinita do cronometro
+    while (1) {
+        segundos++;
+
+        if (segundos == 60) {
+            segundos = 0;
+            minutos++;
+            if (minutos == 60) {
+                minutos = 0;
+                horas++;
+            }
+        }
+        printf("%02d:%02d:%02d\r", horas, minutos, segundos);
+        // esvazia o buffer de saída 
+        fflush(stdout);
+        sleep(1);
+    }
+}
 
 
 bool verificaSeExiste() {
@@ -48,10 +79,10 @@ void criaLogSeNaoExiste() {
         printf("Criando Logs...\n");
         file = fopen("logs.txt", "w");
         if (file == NULL) {
-            printf("erro ao criar o arquivo\n");
+            printf("Erro ao criar o arquivo :()\n");
         }
         else {
-            printf("Logs criado com sucesso!\n");
+            printf("Logs criados com sucesso!\n");
             fclose(file);
         }
     }
@@ -113,4 +144,5 @@ int main(void) {
     criaLogSeNaoExiste();
     verificaSeJaFoiRegistrado();
     escreveLogs();
+    cronometro();
 }
