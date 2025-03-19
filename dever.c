@@ -1,48 +1,25 @@
 #include <ncurses.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <threads.h>
+// fornece funções relacionadas ao tempo
 #include <time.h>
-
 // POSIX Library que permite abrir, ler e fechar diretorios
 #include <dirent.h>
 #include <string.h>
-
 // para o sleep
 #include <unistd.h>
+#include "cronometro.h"
+
+
+
+
+
 
 // variaveis globais
 FILE *file;
 DIR *directory; 
 int dia, mes, ano;
 int horas, minutos, segundos = 0;
-
-int cronometro() {
-    printf("iniciando o cronometro...");
-    printf("pressione qualquer tecla para iniciar");
-    
-    int caractere; 
-    getchar(); // aguarda o usuário pressionar algo
-
-    // permite a contagem infinita do cronometro
-    while (1) {
-        segundos++;
-
-        if (segundos == 60) {
-            segundos = 0;
-            minutos++;
-            if (minutos == 60) {
-                minutos = 0;
-                horas++;
-            }
-        }
-        printf("%02d:%02d:%02d\r", horas, minutos, segundos);
-        // esvazia o buffer de saída 
-        fflush(stdout);
-        sleep(1);
-    }
-}
-
 
 bool verificaSeExiste() {
     struct dirent *entry;
@@ -136,13 +113,30 @@ void escreveLogs() {
     fclose(file);
 }
 
+void menu() {
+    initscr();
+    clear();
+    printw("Dever.c!");
+    refresh();
+    printw("[E] iniciar\n[H] ajuda\n[X] sair");
+    // char string[80];
+    // getstr(string);
+    char escolha = getch();
+    if (escolha == 'E' || escolha == 'e'){
+        clear();
+        refresh();
+        cronometro(&horas, &minutos, &segundos);
+    };
+    endwin();
+}
+
 int main(void) {
 
     // "a" -> append. 
     // "w" -> write
-    
+    menu();
     criaLogSeNaoExiste();
     verificaSeJaFoiRegistrado();
     escreveLogs();
-    cronometro();
+    cronometro(&horas, &minutos, &segundos);
 }
